@@ -5,6 +5,8 @@
   import 'package:pirateprogrammers/volunteer/volunteer_home_page.dart';
   import 'package:pirateprogrammers/login_page.dart';
   import 'package:pirateprogrammers/registration_page.dart';
+  import 'Bank/bank_home_page.dart';
+import 'Bank/bank_profile.dart';
 
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,8 @@
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => LandingPage(),
+          // '/': (context) => LandingPage(),
+          '/': (context) => HomeBankScreen(),
           '/home': (context) => HomePage(),
           '/login': (context) => LoginPage(),
           '/registration': (context) => RegistrationPage(),

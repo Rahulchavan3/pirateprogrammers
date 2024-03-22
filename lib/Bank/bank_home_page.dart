@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 
-class HomeBankScreen extends StatelessWidget {
+class HomeBankScreen extends StatefulWidget {
+  @override
+  _HomeBankScreenState createState() => _HomeBankScreenState();
+}
+
+class _HomeBankScreenState extends State<HomeBankScreen> {
+  int _selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,21 +25,90 @@ class HomeBankScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: ListView(
+      body: Stack(
         children: [
-          NameItem(
-            name: 'John',
-            notificationCount: 10,
+          if (_selectedIndex == 0) // Render only if "Home" tab is selected
+            _buildPageView(),
+          if (_selectedIndex == 1) // Render only if "Search" tab is selected
+            _buildSearchOverlay(),
+          if (_selectedIndex == 2) // Render only if "Settings" tab is selected
+            _buildProfileOverlay(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
           ),
-          NameItem(
-            name: 'Alice',
-            notificationCount: 10,
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
           ),
-          NameItem(
-            name: 'Bob',
-            notificationCount: 10,
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildPageView() {
+    return PageView(
+      children: [
+        ListView(
+          children: [
+            NameItem(
+              name: 'John',
+              notificationCount: 10,
+            ),
+            NameItem(
+              name: 'Alice',
+              notificationCount: 10,
+            ),
+            NameItem(
+              name: 'Bob',
+              notificationCount: 10,
+            ),
+          ],
+        ),
+        Container(), // Empty Container for the Search tab
+      ],
+      onPageChanged: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
+    );
+  }
+
+  Widget _buildSearchOverlay() {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Text(
+          'Data Update',
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileOverlay() {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Text(
+          'Profile',
+          style: TextStyle(fontSize: 24),
+        ),
       ),
     );
   }
