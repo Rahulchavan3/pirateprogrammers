@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pirateprogrammers/login_page.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({Key? key}) : super(key: key);
@@ -66,8 +67,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     'email': _emailController.text,
                   });
 
-                  // Navigate to main page on successful registration
-                  Navigator.pushReplacementNamed(context, '/main');
+                  // Navigate to login page on successful registration
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
                 } catch (e) {
                   print('Error: $e');
                   // Handle error
