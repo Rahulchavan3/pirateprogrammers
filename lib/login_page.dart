@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:pirateprogrammers/home_page.dart'; // Import HomePage
 import 'package:pirateprogrammers/registration_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -47,8 +47,11 @@ class _LoginPageState extends State<LoginPage> {
                     email: _emailController.text,
                     password: _passwordController.text,
                   );
-                  // Navigate to main page on successful login
-                  Navigator.pushReplacementNamed(context, '/main');
+                  // Navigate to homepage on successful login
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
+                  );
                 } catch (e) {
                   print('Error: $e');
                   // Handle error
@@ -61,9 +64,10 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () {
                 // Navigate to registration page
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const RegistrationPage()));
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const RegistrationPage()),
+                );
               },
               child: const Text('Create New Account'),
             ),
