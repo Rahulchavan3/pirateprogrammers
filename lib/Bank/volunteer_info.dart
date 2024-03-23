@@ -107,7 +107,7 @@ class _VolunteerInfoState extends State<VolunteerInfo> {
   onPressed: () {
     FirebaseFirestore.instance.collection('users').where('name', isEqualTo: widget.name).get().then((querySnapshot) {
       querySnapshot.docs.forEach((doc) {
-        doc.reference.update({'approved': 1}); // Update 'approved' field to 1 for approval
+        doc.reference.update({'approved': 1}); // Update 'approved' field to 1 for approval xD
       });
     });
     setState(() {
