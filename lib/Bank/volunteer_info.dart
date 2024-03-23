@@ -13,19 +13,20 @@ class VolunteerInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<QuerySnapshot>(
-      future: FirebaseFirestore.instance.collection('users').where('name', isEqualTo: name).get(),
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').where('name', isEqualTo: name).get().then((QuerySnapshot querySnapshot) => querySnapshot.docs.first),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData || snapshot.data!.data() == null) {
           return Text('Volunteer data not found');
         }
 
-        final volunteerData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+        final volunteerData = snapshot.data!.data() as Map<String, dynamic>;
         final profileImageUrl = volunteerData['profileImage'] ?? '';
+        final score = volunteerData['score'] ?? ''; // Fetch volunteer's score
 
         return Scaffold(
           appBar: AppBar(
@@ -72,7 +73,7 @@ class VolunteerInfo extends StatelessWidget {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        '15', // Assuming the initial score is 15, replace it with actual data
+                        score.toString(),
                         style: TextStyle(fontSize: 20),
                       ),
                     ],

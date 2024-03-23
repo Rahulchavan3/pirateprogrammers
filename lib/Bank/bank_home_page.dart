@@ -97,45 +97,48 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildPageView() {
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestore
-          .collection('users')
-          .where('role', isEqualTo: 'Volunteer')
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else {
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            // If no volunteer data found, display a message
-            return Center(child: Text('No volunteers found'));
-          }
-          final volunteerData = snapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: volunteerData.length,
-            itemBuilder: (context, index) {
-              final name = volunteerData[index]['name'];
-              final profileImageUrl = volunteerData[index]['profileImage'];
-              final notificationCount = 10;
-
-              return GestureDetector(
-                onTap: () {
-                  _navigateToVolunteerInfo(context, name, notificationCount);
-                },
-                child: NameItem(
-                  name: name,
-                  notificationCount: notificationCount, profileImageUrl: profileImageUrl,
-                ),
-              );
-            },
-          );
+  return StreamBuilder<QuerySnapshot>(
+    stream: _firestore
+        .collection('users')
+        .where('role', isEqualTo: 'Volunteer')
+        .snapshots(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          // If no volunteer data found, display a message
+          return Center(child: Text('No volunteers found'));
         }
-      },
-    );
-  }
+        // Extract volunteer data and sort based on the 'score' field
+        List<DocumentSnapshot> volunteerData = snapshot.data!.docs;
+        volunteerData.sort((a, b) => b['score'].compareTo(a['score']));
+
+        return ListView.builder(
+          itemCount: volunteerData.length,
+          itemBuilder: (context, index) {
+            final name = volunteerData[index]['name'];
+            final profileImageUrl = volunteerData[index]['profileImage'];
+            final notificationCount = 10;
+
+            return GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, name, notificationCount);
+              },
+              child: NameItem(
+                name: name,
+                notificationCount: notificationCount, profileImageUrl: profileImageUrl,
+              ),
+            );
+          },
+        );
+      }
+    },
+  );
+}
+
 
   void _navigateToVolunteerInfo(BuildContext context, String name, int notificationCount) {
     Navigator.push(
