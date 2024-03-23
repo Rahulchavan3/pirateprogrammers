@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -17,6 +18,15 @@ class BankInfo extends StatefulWidget {
 
 class _BankInfoState extends State<BankInfo> {
   int _request = 0;
+  late User? user;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    user = _auth.currentUser;
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -32,17 +42,15 @@ class _BankInfoState extends State<BankInfo> {
     });
   }
 
-  void _submitRequest() {
-    FirebaseFirestore.instance.collection('users').doc(widget.name).update({
-      'requestedData': _request,
-    }).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Request submitted successfully')),
-      );
+  void _saveResultToFirestore(String userId, int requestValue) {
+    _firestore.collection('users').doc(userId).update({
+      'request': requestValue,
+    }).then((value) {
+      // Successfully saved to Firestore
+      print('Counter value saved to Firestore: $requestValue');
     }).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit request: $error')),
-      );
+      // Failed to save to Firestore
+      print('Failed to save counter value: $error');
     });
   }
 
@@ -135,7 +143,9 @@ class _BankInfoState extends State<BankInfo> {
                   ),
                   SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _submitRequest,
+                    onPressed: () {
+                      _saveResultToFirestore(user!.uid, _request);
+                    },
                     child: Text('Request'),
                   ),
                 ],

@@ -28,9 +28,9 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        // '/': (context) => LandingPage(),
-        '/': (context) =>
-            HomeBankScreen(user: FirebaseAuth.instance.currentUser!),
+        '/': (context) => LandingPage(),
+        // '/': (context) =>
+        //     HomeBankScreen(user: FirebaseAuth.instance.currentUser!),
         //'/': (context) => LoginPage(),
         //'/home': (context) => HomePage(),
         '/homebank': (context) =>
