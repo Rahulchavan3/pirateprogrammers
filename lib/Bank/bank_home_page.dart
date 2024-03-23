@@ -359,9 +359,18 @@ class NameItem extends StatelessWidget {
                     name,
                     style: TextStyle(fontSize: 18),
                   ),
-                  Text(
-                    'Requirement ${demand.toString()}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  Row(
+                    children: [
+                      Text(
+                        'Requirement:',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        demand.toString(),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ],
               ),
