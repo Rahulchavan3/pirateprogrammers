@@ -28,6 +28,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,45 +92,42 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildPageView() {
-    return PageView(
-      children: [
-        ListView(
-          children: [
-            GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, 'John', 10);
-              },
-              child: NameItem(
-                name: 'John',
-                notificationCount: 10,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, 'Alice', 10);
-              },
-              child: NameItem(
-                name: 'Alice',
-                notificationCount: 10,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, 'Bob', 10);
-              },
-              child: NameItem(
-                name: 'Bob',
-                notificationCount: 10,
-              ),
-            ),
-          ],
-        ),
-        Container(), // Empty Container for the Search tab
-      ],
-      onPageChanged: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'Volunteer')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            // If no volunteer data found, display a message
+            return Center(child: Text('No volunteers found'));
+          }
+          final volunteerData = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: volunteerData.length,
+            itemBuilder: (context, index) {
+              final name = volunteerData[index]['name'];
+              final profileImageUrl = volunteerData[index]['profileImage'];
+              final notificationCount = 10;
+
+              return GestureDetector(
+                onTap: () {
+                  _navigateToVolunteerInfo(context, name, notificationCount);
+                },
+                child: NameItem(
+                  name: name,
+                  notificationCount: notificationCount, profileImageUrl: profileImageUrl,
+                ),
+              );
+            },
+          );
+        }
       },
     );
   }
@@ -143,9 +141,9 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildSearchOverlay() {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final User? user = _auth.currentUser;
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+      final FirebaseAuth _auth = FirebaseAuth.instance;
+      final User? user = _auth.currentUser;
+      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
     return Container(
       color: Colors.white,
@@ -183,7 +181,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           ElevatedButton(
             onPressed: () {
               // Save counter value to Firestore
-              _saveCounterToFirestore(_counter);
+              _saveCounterToFirestore(user!.uid, _counter);
             },
             child: Text('Save'),
           ),
@@ -192,10 +190,10 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     );
   }
 
-  void _saveCounterToFirestore(int counterValue) {
+  void _saveCounterToFirestore(String userId, int counterValue) {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-    _firestore.collection('counters').doc('counter_doc').set({
+    _firestore.collection('users').doc(userId).update({
       'counter': counterValue,
     }).then((value) {
       // Successfully saved to Firestore
@@ -227,67 +225,86 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           final profileImage = profileData['profileImage']; // Fetch the 'profileImage' field from Firestore
           final role = profileData['role']; // Fetch the 'role' field from Firestore
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: NetworkImage(profileImage),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: NetworkImage(profileImage),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Center(
+                child: Text(
+                  name,
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
                 ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: Text(
-                name,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
               ),
-            ),
-            SizedBox(height: 10),
-            Divider(color: Colors.grey),
-            ListTile(
-              leading: Icon(Icons.work, color: Colors.blue),
-              title: Text('Role: $role', style: TextStyle(fontSize: 18)),
-            ),
-            ListTile(
-              leading: Icon(Icons.email, color: Colors.red),
-              title: Text('Email: $email', style: TextStyle(fontSize: 18)),
-            ),
-            Spacer(),
-            Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  await _auth.signOut();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: Text('Logout', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              Divider(color: Colors.grey),
+              ListTile(
+                leading: Icon(Icons.work, color: Colors.blue),
+                title: Text('Role: $role', style: TextStyle(fontSize: 18)),
               ),
-            ),
-            SizedBox(height: 20),
-          ],
-        );
-      }
-    },
-  );
-}
-
+              ListTile(
+                leading: Icon(Icons.email, color: Colors.red),
+                title: Text('Email: $email', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone, color: Colors.red),
+                title: Text('phone: $phone', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: Icon(Icons.location_city_rounded, color: Colors.red),
+                title:
+                    Text('Address: $address', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: Icon(Icons.add_location, color: Colors.red),
+                title:
+                    Text('pincode: $pincode', style: TextStyle(fontSize: 18)),
+              ),
+              Spacer(),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _auth.signOut();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                    );
+                  },
+                  child: Text('Logout', style: TextStyle(fontSize: 16)),
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          );
+        }
+      },
+    );
+  }
 }
 
 class NameItem extends StatelessWidget {
   final String name;
   final int notificationCount;
+  final String profileImageUrl; // Add profile image URL
 
   const NameItem({
     required this.name,
     required this.notificationCount,
+    required this.profileImageUrl, // Receive profile image URL
   });
 
   @override
@@ -299,13 +316,9 @@ class NameItem extends StatelessWidget {
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.blue, // Change color as needed
-                shape: BoxShape.circle,
-              ),
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage(profileImageUrl), // Use profile image URL
             ),
             SizedBox(width: 16),
             Expanded(
@@ -329,3 +342,4 @@ class NameItem extends StatelessWidget {
     );
   }
 }
+
