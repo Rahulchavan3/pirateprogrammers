@@ -200,14 +200,63 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10), // Rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 3), // changes position of shadow
+          ),
+        ],
+      ),
+      margin: EdgeInsets.all(20), // Margin for the container
       padding: EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Data Update',
-            style: TextStyle(fontSize: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Data Update',
+                style: TextStyle(fontSize: 24),
+              ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.shopping_bag,
+                    size: 24,
+                    color: Colors.black,
+                  ),
+                  SizedBox(width: 4),
+                  StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('approved_records')
+                        .doc(user!.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                        // Handle case where document does not exist
+                        return Text('0'); // Assuming the initial count is 0
+                      } else {
+                        final Map<String, dynamic>? data =
+                            snapshot.data!.data() as Map<String, dynamic>?;
+
+                        final recordCount = data?['approved_records'] ?? 0;
+                        return Text('$recordCount');
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           SizedBox(height: 20),
           Row(
@@ -394,7 +443,7 @@ class NameItem extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Requirement:',
+                        'Available:',
                         style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                       SizedBox(width: 5),
