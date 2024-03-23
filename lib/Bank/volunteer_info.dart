@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class VolunteerInfo extends StatelessWidget {
+class VolunteerInfo extends StatefulWidget {
   final String name;
   final int notificationCount;
 
@@ -12,9 +12,16 @@ class VolunteerInfo extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _VolunteerInfoState createState() => _VolunteerInfoState();
+}
+
+class _VolunteerInfoState extends State<VolunteerInfo> {
+  bool _isApproved = false;
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').where('name', isEqualTo: name).get().then((QuerySnapshot querySnapshot) => querySnapshot.docs.first),
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance.collection('users').where('name', isEqualTo: widget.name).get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -52,7 +59,7 @@ class VolunteerInfo extends StatelessWidget {
                         children: [
                           SizedBox(height: 8),
                           Text(
-                            name,
+                            widget.name,
                             style: TextStyle(fontSize: 24),
                           ),
                           SizedBox(height: 8),
@@ -87,7 +94,7 @@ class VolunteerInfo extends StatelessWidget {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        notificationCount.toString(),
+                        widget.notificationCount.toString(),
                         style: TextStyle(fontSize: 20),
                       ),
                     ],
@@ -98,6 +105,9 @@ class VolunteerInfo extends StatelessWidget {
                     children: [
                       ElevatedButton(
                         onPressed: () {
+                          setState(() {
+                            _isApproved = true;
+                          });
                           // Handle Approve button press
                         },
                         child: Text('Approve'),
@@ -107,6 +117,9 @@ class VolunteerInfo extends StatelessWidget {
                       ),
                       ElevatedButton(
                         onPressed: () {
+                          setState(() {
+                            _isApproved = false;
+                          });
                           // Handle Reject button press
                         },
                         child: Text('Reject'),
