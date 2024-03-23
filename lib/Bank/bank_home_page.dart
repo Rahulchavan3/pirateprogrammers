@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'volunteer_info.dart';
+
 class HomeBankScreen extends StatefulWidget {
   @override
   _HomeBankScreenState createState() => _HomeBankScreenState();
@@ -42,12 +44,12 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
+            icon: Icon(Icons.edit_note_rounded),
+            label: 'Update',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.account_circle_rounded),
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,
@@ -65,17 +67,32 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
       children: [
         ListView(
           children: [
-            NameItem(
-              name: 'John',
-              notificationCount: 10,
+            GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, 'John', 10);
+              },
+              child: NameItem(
+                name: 'John',
+                notificationCount: 10,
+              ),
             ),
-            NameItem(
-              name: 'Alice',
-              notificationCount: 10,
+            GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, 'Alice', 10);
+              },
+              child: NameItem(
+                name: 'Alice',
+                notificationCount: 10,
+              ),
             ),
-            NameItem(
-              name: 'Bob',
-              notificationCount: 10,
+            GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, 'Bob', 10);
+              },
+              child: NameItem(
+                name: 'Bob',
+                notificationCount: 10,
+              ),
             ),
           ],
         ),
@@ -86,6 +103,16 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           _selectedIndex = index;
         });
       },
+    );
+  }
+
+  void _navigateToVolunteerInfo(
+      BuildContext context, String name, int notificationCount) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) =>
+              VolunteerInfo(name: name, notificationCount: notificationCount)),
     );
   }
 
@@ -150,7 +177,7 @@ class NameItem extends StatelessWidget {
                     style: TextStyle(fontSize: 18),
                   ),
                   Text(
-                    'Required ${notificationCount.toString()}',
+                    'Requirement ${notificationCount.toString()}',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
