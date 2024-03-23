@@ -43,7 +43,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     }
   }
 
-   void _incrementCounter() {
+  void _incrementCounter() {
     setState(() {
       _counter++;
     });
@@ -82,7 +82,16 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
                 } else {
-                  final counterValue = snapshot.data?['counter'] ?? 0;
+                  final Map<String, dynamic>? data =
+                      snapshot.data as Map<String, dynamic>?;
+
+                  final counterValue = data?['counter'] ?? 0;
+                  if (snapshot.data?.exists == true &&
+                      data?.containsKey('counter') != true) {
+                    // If the field 'counter' does not exist, initialize it with 0
+                    _saveCounterToFirestore(
+                        widget.user.uid, 0); // Save 0 to Firestore
+                  }
                   return Text('$counterValue');
                 }
               },
@@ -145,30 +154,29 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           List<DocumentSnapshot> volunteerData = snapshot.data!.docs;
           volunteerData.sort((a, b) => b['score'].compareTo(a['score']));
 
-        return ListView.builder(
-          itemCount: volunteerData.length,
-          itemBuilder: (context, index) {
-            final name = volunteerData[index]['name'];
-            final profileImageUrl = volunteerData[index]['profileImage'];
-            final demand = volunteerData[index]['demand'] ?? 0; // Fetch demand value from Firestore
+          return ListView.builder(
+            itemCount: volunteerData.length,
+            itemBuilder: (context, index) {
+              final name = volunteerData[index]['name'];
+              final profileImageUrl = volunteerData[index]['profileImage'];
+              final notificationCount = 10;
 
-            return GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, name, demand); // Pass demand value to VolunteerInfo screen
-              },
-              child: NameItem(
-                name: name,
-                demand: demand,
-                profileImageUrl: profileImageUrl,
-              ),
-            );
-          },
-        );
-      }
-    },
-  );
-}
-
+              return GestureDetector(
+                onTap: () {
+                  _navigateToVolunteerInfo(context, name, notificationCount);
+                },
+                child: NameItem(
+                  name: name,
+                  demand: notificationCount,
+                  profileImageUrl: profileImageUrl,
+                ),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
 
   void _navigateToVolunteerInfo(
       BuildContext context, String name, int notificationCount) {
