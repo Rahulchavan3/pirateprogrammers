@@ -121,15 +121,16 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           itemBuilder: (context, index) {
             final name = volunteerData[index]['name'];
             final profileImageUrl = volunteerData[index]['profileImage'];
-            final notificationCount = 10;
+            final demand = volunteerData[index]['demand'] ?? 0; // Fetch demand value from Firestore
 
             return GestureDetector(
               onTap: () {
-                _navigateToVolunteerInfo(context, name, notificationCount);
+                _navigateToVolunteerInfo(context, name, demand); // Pass demand value to VolunteerInfo screen
               },
               child: NameItem(
                 name: name,
-                demand: notificationCount, profileImageUrl: profileImageUrl,
+                demand: demand,
+                profileImageUrl: profileImageUrl,
               ),
             );
           },
@@ -138,6 +139,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     },
   );
 }
+
 
 
   void _navigateToVolunteerInfo(BuildContext context, String name, int notificationCount) {
@@ -341,9 +343,18 @@ class NameItem extends StatelessWidget {
                     name,
                     style: TextStyle(fontSize: 18),
                   ),
-                  Text(
-                    'Requirement ${demand.toString()}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  Row(
+                    children: [
+                      Text(
+                        'Requirement:',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        demand.toString(),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ],
               ),
