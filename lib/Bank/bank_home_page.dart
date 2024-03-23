@@ -32,7 +32,6 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,20 +46,31 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
             ),
             SizedBox(width: 8),
             StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').doc(widget.user.uid).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(widget.user.uid)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
                 } else {
-                  final counterValue = snapshot.data?['counter'] ?? 0;
-                  return Text('$counterValue');
-          }
-        },
-      ),
-    ],
-  ),
-),
+                  final Map<String, dynamic>? data =
+                      snapshot.data as Map<String, dynamic>?;
 
+                  final counterValue = data?['counter'] ?? 0;
+                  if (snapshot.data?.exists == true &&
+                      data?.containsKey('counter') != true) {
+                    // If the field 'counter' does not exist, initialize it with 0
+                    _saveCounterToFirestore(
+                        widget.user.uid, 0); // Save 0 to Firestore
+                  }
+                  return Text('$counterValue');
+                }
+              },
+            ),
+          ],
+        ),
+      ),
       body: Stack(
         children: [
           if (_selectedIndex == 0) // Render only if "Home" tab is selected
@@ -97,61 +107,65 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildPageView() {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  return StreamBuilder<QuerySnapshot>(
-    stream: _firestore
-        .collection('users')
-        .where('role', isEqualTo: 'Volunteer')
-        .snapshots(),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
-      } else {
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          // If no volunteer data found, display a message
-          return Center(child: Text('No volunteers found'));
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'Volunteer')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            // If no volunteer data found, display a message
+            return Center(child: Text('No volunteers found'));
+          }
+          // Extract volunteer data and sort based on the 'score' field
+          List<DocumentSnapshot> volunteerData = snapshot.data!.docs;
+          volunteerData.sort((a, b) => b['score'].compareTo(a['score']));
+
+          return ListView.builder(
+            itemCount: volunteerData.length,
+            itemBuilder: (context, index) {
+              final name = volunteerData[index]['name'];
+              final profileImageUrl = volunteerData[index]['profileImage'];
+              final notificationCount = 10;
+
+              return GestureDetector(
+                onTap: () {
+                  _navigateToVolunteerInfo(context, name, notificationCount);
+                },
+                child: NameItem(
+                  name: name,
+                  demand: notificationCount,
+                  profileImageUrl: profileImageUrl,
+                ),
+              );
+            },
+          );
         }
-        // Extract volunteer data and sort based on the 'score' field
-        List<DocumentSnapshot> volunteerData = snapshot.data!.docs;
-        volunteerData.sort((a, b) => b['score'].compareTo(a['score']));
+      },
+    );
+  }
 
-        return ListView.builder(
-          itemCount: volunteerData.length,
-          itemBuilder: (context, index) {
-            final name = volunteerData[index]['name'];
-            final profileImageUrl = volunteerData[index]['profileImage'];
-            final notificationCount = 10;
-
-            return GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, name, notificationCount);
-              },
-              child: NameItem(
-                name: name,
-                demand: notificationCount, profileImageUrl: profileImageUrl,
-              ),
-            );
-          },
-        );
-      }
-    },
-  );
-}
-
-
-  void _navigateToVolunteerInfo(BuildContext context, String name, int notificationCount) {
+  void _navigateToVolunteerInfo(
+      BuildContext context, String name, int notificationCount) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => VolunteerInfo(name: name, notificationCount: notificationCount,)),
+          builder: (context) => VolunteerInfo(
+                name: name,
+                notificationCount: notificationCount,
+              )),
     );
   }
 
   Widget _buildSearchOverlay() {
-      final FirebaseAuth _auth = FirebaseAuth.instance;
-      final User? user = _auth.currentUser;
-      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
     return Container(
       color: Colors.white,
@@ -228,11 +242,14 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
             return Text('No profile data found');
           }
           final profileData = snapshot.data!.data() as Map<String, dynamic>;
-          final name = 
-          profileData['name']; // Fetch the 'name' field from Firestore
-          final email = profileData['email']; // Fetch the 'email' field from Firestore
-          final profileImage = profileData['profileImage']; // Fetch the 'profileImage' field from Firestore
-          final role = profileData['role']; // Fetch the 'role' field from Firestore
+          final name =
+              profileData['name']; // Fetch the 'name' field from Firestore
+          final email =
+              profileData['email']; // Fetch the 'email' field from Firestore
+          final profileImage = profileData[
+              'profileImage']; // Fetch the 'profileImage' field from Firestore
+          final role =
+              profileData['role']; // Fetch the 'role' field from Firestore
           final address = profileData['address'];
           final phone = profileData['phone'];
           final pincode = profileData['pincode'];
@@ -330,7 +347,8 @@ class NameItem extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundImage: NetworkImage(profileImageUrl), // Use profile image URL
+              backgroundImage:
+                  NetworkImage(profileImageUrl), // Use profile image URL
             ),
             SizedBox(width: 16),
             Expanded(
@@ -354,4 +372,3 @@ class NameItem extends StatelessWidget {
     );
   }
 }
-
