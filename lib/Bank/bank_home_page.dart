@@ -145,29 +145,30 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           List<DocumentSnapshot> volunteerData = snapshot.data!.docs;
           volunteerData.sort((a, b) => b['score'].compareTo(a['score']));
 
-          return ListView.builder(
-            itemCount: volunteerData.length,
-            itemBuilder: (context, index) {
-              final name = volunteerData[index]['name'];
-              final profileImageUrl = volunteerData[index]['profileImage'];
-              final notificationCount = 10;
+        return ListView.builder(
+          itemCount: volunteerData.length,
+          itemBuilder: (context, index) {
+            final name = volunteerData[index]['name'];
+            final profileImageUrl = volunteerData[index]['profileImage'];
+            final demand = volunteerData[index]['demand'] ?? 0; // Fetch demand value from Firestore
 
-              return GestureDetector(
-                onTap: () {
-                  _navigateToVolunteerInfo(context, name, notificationCount);
-                },
-                child: NameItem(
-                  name: name,
-                  demand: notificationCount,
-                  profileImageUrl: profileImageUrl,
-                ),
-              );
-            },
-          );
-        }
-      },
-    );
-  }
+            return GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, name, demand); // Pass demand value to VolunteerInfo screen
+              },
+              child: NameItem(
+                name: name,
+                demand: demand,
+                profileImageUrl: profileImageUrl,
+              ),
+            );
+          },
+        );
+      }
+    },
+  );
+}
+
 
   void _navigateToVolunteerInfo(
       BuildContext context, String name, int notificationCount) {
@@ -378,9 +379,18 @@ class NameItem extends StatelessWidget {
                     name,
                     style: TextStyle(fontSize: 18),
                   ),
-                  Text(
-                    'Requirement ${demand.toString()}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  Row(
+                    children: [
+                      Text(
+                        'Requirement:',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        demand.toString(),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ],
               ),
