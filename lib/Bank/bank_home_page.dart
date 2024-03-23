@@ -134,8 +134,13 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildSearchOverlay() {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final User? user = _auth.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   return Container(
     color: Colors.white,
+    padding: EdgeInsets.all(20),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -144,35 +149,56 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
           style: TextStyle(fontSize: 24),
         ),
         SizedBox(height: 20),
-        Text(
-          'Counter Value:',
-          style: TextStyle(fontSize: 20),
-        ),
-        Text(
-          '$_counter',
-          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FloatingActionButton(
-              onPressed: _incrementCounter,
-              tooltip: 'Increment',
-              child: Icon(Icons.add),
-            ),
-            SizedBox(width: 20),
+            
             FloatingActionButton(
               onPressed: _decrementCounter,
               tooltip: 'Decrement',
               child: Icon(Icons.remove),
             ),
+            SizedBox(width: 20),
+            Text(
+              '$_counter',
+              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(width: 20),
+            FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Increment',
+              child: Icon(Icons.add),
+            ),
           ],
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
+            // Save counter value to Firestore
+            _saveCounterToFirestore(user!.uid, _counter);
+          },
+          child: Text('Save'),
         ),
       ],
     ),
   );
 }
+
+
+void _saveCounterToFirestore(String userId, int counterValue) {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  _firestore.collection('users').doc(userId).update({
+    'counter': counterValue,
+  }).then((value) {
+    // Successfully saved to Firestore
+    print('Counter value saved to Firestore: $counterValue');
+  }).catchError((error) {
+    // Failed to save to Firestore
+    print('Failed to save counter value: $error');
+  });
+}
+
 
 
   Widget _buildProfileOverlay() {
