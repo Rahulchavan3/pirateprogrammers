@@ -127,7 +127,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
       context,
       MaterialPageRoute(
           builder: (context) =>
-              VolunteerInfo(name: name, notificationCount: notificationCount)),
+              VolunteerInfo(name: name, notificationCount: notificationCount,)),
     );
   }
 
