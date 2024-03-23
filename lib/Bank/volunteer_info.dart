@@ -27,14 +27,13 @@ class _VolunteerInfoState extends State<VolunteerInfo> {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (!snapshot.hasData || snapshot.data!.data() == null) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Text('Volunteer data not found');
         }
 
-        final volunteerData = snapshot.data!.data() as Map<String, dynamic>;
+        final volunteerData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
         final profileImageUrl = volunteerData['profileImage'] ?? '';
-        final score = volunteerData['score'] ?? ''; // Fetch volunteer's score
-
+        final score = volunteerData['score']??'';
         return Scaffold(
           appBar: AppBar(
             title: Text('Volunteer Info'),
