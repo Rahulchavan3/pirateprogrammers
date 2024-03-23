@@ -7,7 +7,21 @@ class HomeBankScreen extends StatefulWidget {
 
 class _HomeBankScreenState extends State<HomeBankScreen> {
   int _selectedIndex = 0;
+  int _counter = 0;
 
+  void _incrementCounter() {
+    setState(() {
+      _counter++;
+    });
+  }
+
+  void _decrementCounter() {
+    setState(() {
+      if (_counter > 0) {
+        _counter--;
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,16 +104,46 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildSearchOverlay() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Text(
+  return Container(
+    color: Colors.white,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
           'Data Update',
           style: TextStyle(fontSize: 24),
         ),
-      ),
-    );
-  }
+        SizedBox(height: 20),
+        Text(
+          'Counter Value:',
+          style: TextStyle(fontSize: 20),
+        ),
+        Text(
+          '$_counter',
+          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Increment',
+              child: Icon(Icons.add),
+            ),
+            SizedBox(width: 20),
+            FloatingActionButton(
+              onPressed: _decrementCounter,
+              tooltip: 'Decrement',
+              child: Icon(Icons.remove),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildProfileOverlay() {
     return Container(
