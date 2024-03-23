@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pirateprogrammers/login_page.dart';
 
+import 'volunteer_info.dart';
+
 class HomeBankScreen extends StatefulWidget {
   @override
   _HomeBankScreenState createState() => _HomeBankScreenState();
@@ -10,7 +12,21 @@ class HomeBankScreen extends StatefulWidget {
 
 class _HomeBankScreenState extends State<HomeBankScreen> {
   int _selectedIndex = 0;
+  int _counter = 0;
 
+  void _incrementCounter() {
+    setState(() {
+      _counter++;
+    });
+  }
+
+  void _decrementCounter() {
+    setState(() {
+      if (_counter > 0) {
+        _counter--;
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,12 +61,12 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
+            icon: Icon(Icons.edit_note_rounded),
+            label: 'Update',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.account_circle_rounded),
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,
@@ -68,17 +84,32 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
       children: [
         ListView(
           children: [
-            NameItem(
-              name: 'John',
-              notificationCount: 10,
+            GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, 'John', 10);
+              },
+              child: NameItem(
+                name: 'John',
+                notificationCount: 10,
+              ),
             ),
-            NameItem(
-              name: 'Alice',
-              notificationCount: 10,
+            GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, 'Alice', 10);
+              },
+              child: NameItem(
+                name: 'Alice',
+                notificationCount: 10,
+              ),
             ),
-            NameItem(
-              name: 'Bob',
-              notificationCount: 10,
+            GestureDetector(
+              onTap: () {
+                _navigateToVolunteerInfo(context, 'Bob', 10);
+              },
+              child: NameItem(
+                name: 'Bob',
+                notificationCount: 10,
+              ),
             ),
           ],
         ),
@@ -92,17 +123,57 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     );
   }
 
+  void _navigateToVolunteerInfo(
+      BuildContext context, String name, int notificationCount) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) =>
+              VolunteerInfo(name: name, notificationCount: notificationCount)),
+    );
+  }
+
   Widget _buildSearchOverlay() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Text(
+  return Container(
+    color: Colors.white,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
           'Data Update',
           style: TextStyle(fontSize: 24),
         ),
-      ),
-    );
-  }
+        SizedBox(height: 20),
+        Text(
+          'Counter Value:',
+          style: TextStyle(fontSize: 20),
+        ),
+        Text(
+          '$_counter',
+          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Increment',
+              child: Icon(Icons.add),
+            ),
+            SizedBox(width: 20),
+            FloatingActionButton(
+              onPressed: _decrementCounter,
+              tooltip: 'Decrement',
+              child: Icon(Icons.remove),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildProfileOverlay() {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -215,7 +286,7 @@ class NameItem extends StatelessWidget {
                     style: TextStyle(fontSize: 18),
                   ),
                   Text(
-                    'Required ${notificationCount.toString()}',
+                    'Requirement ${notificationCount.toString()}',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
