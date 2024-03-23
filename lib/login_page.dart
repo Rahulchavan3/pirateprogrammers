@@ -18,6 +18,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  String? _errorMessage;
+  bool _isObscured = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,18 +38,32 @@ class _LoginPageState extends State<LoginPage> {
                 labelText: 'Email',
               ),
             ),
-            TextField(
+            SizedBox(height: 20),
+            TextFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Password',
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isObscured = !_isObscured;
+                    });
+                  },
+                  icon: Icon(
+                      _isObscured ? Icons.visibility_off : Icons.visibility),
+                ),
               ),
-              obscureText: true,
+              obscureText: _isObscured,
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
+                setState(() {
+                  _errorMessage = null;
+                });
                 try {
-                  final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+                  final UserCredential userCredential =
+                      await _auth.signInWithEmailAndPassword(
                     email: _emailController.text,
                     password: _passwordController.text,
                   );
@@ -62,15 +79,26 @@ class _LoginPageState extends State<LoginPage> {
                       context,
                       MaterialPageRoute(builder: (context) => HomeBankScreen()),
                     );
+                  } else {
+                    setState(() {
+                      _errorMessage = 'Invalid credentials. Please try again.';
+                    });
                   }
                 } catch (e) {
                   print('Error: $e');
-                  // Handle error
+                  setState(() {
+                    _errorMessage = 'Invalid credentials. Please try again.';
+                  });
                 }
               },
               child: const Text('Login'),
             ),
-            const SizedBox(height: 10),
+            if (_errorMessage != null)
+              Text(
+                _errorMessage!,
+                style: TextStyle(color: Colors.red),
+              ),
+            SizedBox(height: 10),
             TextButton(
               onPressed: () {
                 // Navigate to registration page
@@ -89,7 +117,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<String?> _fetchUserRole(String uid) async {
     try {
-      final DocumentSnapshot snapshot = await _firestore.collection('users').doc(uid).get();
+      final DocumentSnapshot snapshot =
+          await _firestore.collection('users').doc(uid).get();
       if (snapshot.exists) {
         return snapshot['role'];
       }

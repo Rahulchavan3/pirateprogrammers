@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:pirateprogrammers/login_page.dart';
 import 'package:pirateprogrammers/volunteer/volunteer_home_page.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -25,8 +25,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _pincodeController = TextEditingController();
   File? _image;
   String? _selectedRole;
+  bool _passwordVisible = false;
 
-  // Function to pick an image from gallery
+  final _formKey = GlobalKey<FormState>();
+
   Future<void> _getImage() async {
     try {
       final pickedFile =
@@ -44,7 +46,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
   }
 
-  // Function to upload image to Firebase Storage
   Future<String> _uploadImage(String userId) async {
     if (_image == null) return '';
 
@@ -72,124 +73,193 @@ class _RegistrationPageState extends State<RegistrationPage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              GestureDetector(
-                onTap: _getImage, // Open image picker
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null
-                      ? const Icon(Icons.add_a_photo, size: 30)
-                      : null,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                GestureDetector(
+                  onTap: _getImage, // Open image picker
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: _image != null ? FileImage(_image!) : null,
+                    child: _image == null
+                        ? const Icon(Icons.add_a_photo, size: 30)
+                        : null,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your name';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(_passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _passwordVisible = !_passwordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: !_passwordVisible,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a password';
+                    }
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters long';
+                    }
+                    if (!RegExp(
+                            r'^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+                        .hasMatch(value)) {
+                      return 'Password must contain at least one uppercase letter, one lowercase letter, and one special character';
+                    }
+                    return null;
+                  },
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    if (!RegExp(r'^[7-9]\d{9}$').hasMatch(value)) {
+                      return 'Please enter a valid phone number';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _addressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Address',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your address';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _pincodeController,
-                decoration: const InputDecoration(
-                  labelText: 'Pincode',
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _pincodeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Pincode',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your pincode';
+                    }
+                    if (value.length != 6) {
+                      return 'Pincode must be 6 characters long';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: _selectedRole,
-                hint: const Text('Select Role'),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRole = value;
-                  });
-                },
-                items: ['Volunteer', 'Foodbank']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    // Create user in Firebase Authentication
-                    final UserCredential userCredential =
-                        await _auth.createUserWithEmailAndPassword(
-                      email: _emailController.text,
-                      password: _passwordController.text,
-                    );
-
-                    // Upload image to Firebase Storage
-                    String imageURL =
-                        await _uploadImage(userCredential.user!.uid);
-
-                    // Add user details to Firestore collection
-                    await _firestore
-                        .collection('users')
-                        .doc(userCredential.user!.uid)
-                        .set({
-                      'name': _nameController.text,
-                      'email': _emailController.text,
-                      'phone': _phoneController.text,
-                      'address': _addressController.text,
-                      'pincode': _pincodeController.text,
-                      'role': _selectedRole,
-                      'profileImage': imageURL,
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  value: _selectedRole,
+                  hint: const Text('Select Role'),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value;
                     });
-
-                    // Navigate to home page on successful registration
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomePage(),
-                      ),
+                  },
+                  items: ['Volunteer', 'Foodbank']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
                     );
-                  } catch (e) {
-                    print('Error: $e');
-                    // Handle error
-                  }
-                },
-                child: const Text('Sign Up'),
-              ),
-            ],
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      try {
+                        // Create user in Firebase Authentication
+                        final UserCredential userCredential =
+                            await _auth.createUserWithEmailAndPassword(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        );
+
+                        // Upload image to Firebase Storage
+                        String imageURL =
+                            await _uploadImage(userCredential.user!.uid);
+
+                        // Add user details to Firestore collection
+                        await _firestore
+                            .collection('users')
+                            .doc(userCredential.user!.uid)
+                            .set({
+                          'name': _nameController.text,
+                          'email': _emailController.text,
+                          'phone': _phoneController.text,
+                          'address': _addressController.text,
+                          'pincode': _pincodeController.text,
+                          'role': _selectedRole,
+                          'profileImage': imageURL,
+                        });
+
+                        // Navigate to home page on successful registration
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        );
+                      } catch (e) {
+                        print('Error: $e');
+                        // Handle error
+                      }
+                    }
+                  },
+                  child: const Text('Sign Up'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
