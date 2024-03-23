@@ -17,6 +17,31 @@ class HomeBankScreen extends StatefulWidget {
 class _HomeBankScreenState extends State<HomeBankScreen> {
   int _selectedIndex = 0;
   int _counter = 0;
+  String pincode = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPincode();
+  }
+
+  void _fetchPincode() async {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+    try {
+      final userData =
+          await _firestore.collection('users').doc(user!.uid).get();
+      if (userData.exists) {
+        setState(() {
+          pincode = userData['pincode'].toString();
+        });
+      }
+    } catch (e) {
+      print('Error fetching pincode: $e');
+    }
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -38,13 +63,16 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
       appBar: AppBar(
         title: Row(
           children: [
+            Icon(Icons.location_on), // Location icon
+            SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Available',
-                textAlign: TextAlign.right,
+                pincode.isNotEmpty
+                    ? pincode
+                    : pincode, // Display pincode dynamically
+                textAlign: TextAlign.left,
               ),
             ),
-            SizedBox(width: 8),
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
