@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pirateprogrammers/volunteer/volunteer_home_page.dart';
+import 'package:pirateprogrammers/Bank/bank_home_page.dart';
+import 'package:pirateprogrammers/registration_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -13,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +46,23 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await _auth.signInWithEmailAndPassword(
+                  final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
                     email: _emailController.text,
                     password: _passwordController.text,
                   );
-                  // Navigate to homepage on successful login
-                  Navigator.pushReplacementNamed(context, '/home');
+                  final uid = userCredential.user!.uid;
+                  final role = await _fetchUserRole(uid);
+                  if (role == 'Volunteer') {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomePage()),
+                    );
+                  } else if (role == 'Foodbank') {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeBankScreen()),
+                    );
+                  }
                 } catch (e) {
                   print('Error: $e');
                   // Handle error
@@ -59,7 +74,10 @@ class _LoginPageState extends State<LoginPage> {
             TextButton(
               onPressed: () {
                 // Navigate to registration page
-                Navigator.pushNamed(context, '/registration');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegistrationPage()),
+                );
               },
               child: const Text('Create New Account'),
             ),
@@ -67,5 +85,17 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  Future<String?> _fetchUserRole(String uid) async {
+    try {
+      final DocumentSnapshot snapshot = await _firestore.collection('users').doc(uid).get();
+      if (snapshot.exists) {
+        return snapshot['role'];
+      }
+    } catch (e) {
+      print('Error fetching user role: $e');
+    }
+    return null;
   }
 }
