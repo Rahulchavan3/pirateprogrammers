@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.edit_note_rounded),
-            label: 'Update',
+            label: 'Requests',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle_rounded),
@@ -134,54 +134,55 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchOverlay() {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final User? user = _auth.currentUser;
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Data Update',
-            style: TextStyle(fontSize: 24),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FloatingActionButton(
-                onPressed: _decrementCounter,
-                tooltip: 'Decrement',
-                child: Icon(Icons.remove),
-              ),
-              SizedBox(width: 20),
-              Text(
-                '$_demand',
-                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(width: 20),
-              FloatingActionButton(
-                onPressed: _incrementCounter,
-                tooltip: 'Increment',
-                child: Icon(Icons.add),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Save counter value to Firestore
-              _saveDemandToFirestore(user!.uid, _demand);
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'Foodbank')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            // If no volunteer data found, display a message
+            return Center(child: Text('No Foodbank found'));
+          }
+          final bankData = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: bankData.length,
+            itemBuilder: (context, index) {
+              final name = bankData[index]['name'];
+              final profileImageUrl = bankData[index]['profileImage'];
+              final notificationCount = 10;
+
+              return GestureDetector(
+                onTap: () {
+                  _navigateToBankInfo(context, name, notificationCount);
+                },
+                child: NameItem(
+                  name: name,
+                  notificationCount: notificationCount, profileImageUrl: profileImageUrl,
+                ),
+              );
             },
-            child: Text('Save'),
-          ),
-        ],
-      ),
+          );
+        }
+      },
     );
   }
+
+  // void _navigateToBankInfo(
+  //     BuildContext context, String name, int notificationCount) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //         builder: (context) =>
+  //             BankInfo(name: name, notificationCount: notificationCount)),
+  //   );
+  // }
 
   void _saveDemandToFirestore(String userId, int demandValue) {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
