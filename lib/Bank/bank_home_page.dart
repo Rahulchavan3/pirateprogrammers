@@ -27,6 +27,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,146 +135,167 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildSearchOverlay() {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final User? user = _auth.currentUser;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  return Container(
-    color: Colors.white,
-    padding: EdgeInsets.all(20),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Data Update',
-          style: TextStyle(fontSize: 24),
-        ),
-        SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            
-            FloatingActionButton(
-              onPressed: _decrementCounter,
-              tooltip: 'Decrement',
-              child: Icon(Icons.remove),
-            ),
-            SizedBox(width: 20),
-            Text(
-              '$_counter',
-              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(width: 20),
-            FloatingActionButton(
-              onPressed: _incrementCounter,
-              tooltip: 'Increment',
-              child: Icon(Icons.add),
-            ),
-          ],
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            // Save counter value to Firestore
-            _saveCounterToFirestore(user!.uid, _counter);
-          },
-          child: Text('Save'),
-        ),
-      ],
-    ),
-  );
-}
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.all(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Data Update',
+            style: TextStyle(fontSize: 24),
+          ),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FloatingActionButton(
+                onPressed: _decrementCounter,
+                tooltip: 'Decrement',
+                child: Icon(Icons.remove),
+              ),
+              SizedBox(width: 20),
+              Text(
+                '$_counter',
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(width: 20),
+              FloatingActionButton(
+                onPressed: _incrementCounter,
+                tooltip: 'Increment',
+                child: Icon(Icons.add),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              // Save counter value to Firestore
+              _saveCounterToFirestore(user!.uid, _counter);
+            },
+            child: Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 
+  void _saveCounterToFirestore(String userId, int counterValue) {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-void _saveCounterToFirestore(String userId, int counterValue) {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  _firestore.collection('users').doc(userId).update({
-    'counter': counterValue,
-  }).then((value) {
-    // Successfully saved to Firestore
-    print('Counter value saved to Firestore: $counterValue');
-  }).catchError((error) {
-    // Failed to save to Firestore
-    print('Failed to save counter value: $error');
-  });
-}
-
-
+    _firestore.collection('users').doc(userId).update({
+      'counter': counterValue,
+    }).then((value) {
+      // Successfully saved to Firestore
+      print('Counter value saved to Firestore: $counterValue');
+    }).catchError((error) {
+      // Failed to save to Firestore
+      print('Failed to save counter value: $error');
+    });
+  }
 
   Widget _buildProfileOverlay() {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final User? user = _auth.currentUser;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  return StreamBuilder<DocumentSnapshot>(
-    stream: _firestore.collection('users').doc(user!.uid).snapshots(),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
-      } else {
-        if (!snapshot.hasData || snapshot.data!.data() == null) {
-          // If no data or no user found, display an appropriate message
-          return Text('No profile data found');
-        }
-        final profileData = snapshot.data!.data() as Map<String, dynamic>;
-        final name = profileData['name']; // Fetch the 'name' field from Firestore
-        final email = profileData['email']; // Fetch the 'email' field from Firestore
-        final profileImage = profileData['profileImage']; // Fetch the 'profileImage' field from Firestore
-        final role = profileData['role']; // Fetch the 'role' field from Firestore
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestore.collection('users').doc(user!.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          if (!snapshot.hasData || snapshot.data!.data() == null) {
+            // If no data or no user found, display an appropriate message
+            return Text('No profile data found');
+          }
+          final profileData = snapshot.data!.data() as Map<String, dynamic>;
+          final name =
+              profileData['name']; // Fetch the 'name' field from Firestore
+          final email =
+              profileData['email']; // Fetch the 'email' field from Firestore
+          final profileImage = profileData[
+              'profileImage']; // Fetch the 'profileImage' field from Firestore
+          final role =
+              profileData['role']; // Fetch the 'role' field from Firestore
+          final address =
+              profileData['address']; // Fetch the 'role' field from Firestore
+          final phone =
+              profileData['phone']; // Fetch the 'role' field from Firestore
+          final pincode =
+              profileData['pincode']; // Fetch the 'role' field from Firestore
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: NetworkImage(profileImage),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: NetworkImage(profileImage),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Center(
+                child: Text(
+                  name,
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
                 ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: Text(
-                name,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
               ),
-            ),
-            SizedBox(height: 10),
-            Divider(color: Colors.grey),
-            ListTile(
-              leading: Icon(Icons.work, color: Colors.blue),
-              title: Text('Role: $role', style: TextStyle(fontSize: 18)),
-            ),
-            ListTile(
-              leading: Icon(Icons.email, color: Colors.red),
-              title: Text('Email: $email', style: TextStyle(fontSize: 18)),
-            ),
-            Spacer(),
-            Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  await _auth.signOut();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: Text('Logout', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              Divider(color: Colors.grey),
+              ListTile(
+                leading: Icon(Icons.work, color: Colors.blue),
+                title: Text('Role: $role', style: TextStyle(fontSize: 18)),
               ),
-            ),
-            SizedBox(height: 20),
-          ],
-        );
-      }
-    },
-  );
-}
-
+              ListTile(
+                leading: Icon(Icons.email, color: Colors.red),
+                title: Text('Email: $email', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone, color: Colors.red),
+                title: Text('phone: $phone', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: Icon(Icons.location_city_rounded, color: Colors.red),
+                title: Text('Address: $address', style: TextStyle(fontSize: 18)),
+              ),
+              ListTile(
+                leading: Icon(Icons.add_location, color: Colors.red),
+                title: Text('pincode: $pincode', style: TextStyle(fontSize: 18)),
+              ),
+              Spacer(),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _auth.signOut();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                    );
+                  },
+                  child: Text('Logout', style: TextStyle(fontSize: 16)),
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          );
+        }
+      },
+    );
+  }
 }
 
 class NameItem extends StatelessWidget {
