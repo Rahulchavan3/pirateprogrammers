@@ -81,45 +81,42 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
   }
 
   Widget _buildPageView() {
-    return PageView(
-      children: [
-        ListView(
-          children: [
-            GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, 'John', 10);
-              },
-              child: NameItem(
-                name: 'John',
-                notificationCount: 10,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, 'Alice', 10);
-              },
-              child: NameItem(
-                name: 'Alice',
-                notificationCount: 10,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                _navigateToVolunteerInfo(context, 'Bob', 10);
-              },
-              child: NameItem(
-                name: 'Bob',
-                notificationCount: 10,
-              ),
-            ),
-          ],
-        ),
-        Container(), // Empty Container for the Search tab
-      ],
-      onPageChanged: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'Volunteer')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            // If no volunteer data found, display a message
+            return Center(child: Text('No volunteers found'));
+          }
+          final volunteerData = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: volunteerData.length,
+            itemBuilder: (context, index) {
+              final name = volunteerData[index]['name'];
+              final profileImageUrl = volunteerData[index]['profileImage'];
+              final notificationCount = 10;
+
+              return GestureDetector(
+                onTap: () {
+                  _navigateToVolunteerInfo(context, name, notificationCount);
+                },
+                child: NameItem(
+                  name: name,
+                  notificationCount: notificationCount, profileImageUrl: profileImageUrl,
+                ),
+              );
+            },
+          );
+        }
       },
     );
   }
@@ -269,11 +266,13 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.location_city_rounded, color: Colors.red),
-                title: Text('Address: $address', style: TextStyle(fontSize: 18)),
+                title:
+                    Text('Address: $address', style: TextStyle(fontSize: 18)),
               ),
               ListTile(
                 leading: Icon(Icons.add_location, color: Colors.red),
-                title: Text('pincode: $pincode', style: TextStyle(fontSize: 18)),
+                title:
+                    Text('pincode: $pincode', style: TextStyle(fontSize: 18)),
               ),
               Spacer(),
               Center(
@@ -301,10 +300,12 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
 class NameItem extends StatelessWidget {
   final String name;
   final int notificationCount;
+  final String profileImageUrl; // Add profile image URL
 
   const NameItem({
     required this.name,
     required this.notificationCount,
+    required this.profileImageUrl, // Receive profile image URL
   });
 
   @override
@@ -316,13 +317,9 @@ class NameItem extends StatelessWidget {
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.blue, // Change color as needed
-                shape: BoxShape.circle,
-              ),
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage(profileImageUrl), // Use profile image URL
             ),
             SizedBox(width: 16),
             Expanded(
@@ -346,3 +343,4 @@ class NameItem extends StatelessWidget {
     );
   }
 }
+
