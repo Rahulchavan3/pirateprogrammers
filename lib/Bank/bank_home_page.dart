@@ -81,13 +81,17 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                  // Handle case where document does not exist
+                  return Text('Document does not exist');
                 } else {
                   final Map<String, dynamic>? data =
-                      snapshot.data as Map<String, dynamic>?;
+                      snapshot.data!.data() as Map<String, dynamic>?;
 
                   final counterValue = data?['counter'] ?? 0;
-                  if (snapshot.data?.exists == true &&
-                      data?.containsKey('counter') != true) {
+                  if (!data!.containsKey('counter')) {
                     // If the field 'counter' does not exist, initialize it with 0
                     _saveCounterToFirestore(
                         widget.user.uid, 0); // Save 0 to Firestore
