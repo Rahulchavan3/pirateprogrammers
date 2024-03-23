@@ -16,7 +16,7 @@ class VolunteerInfo extends StatefulWidget {
 }
 
 class _VolunteerInfoState extends State<VolunteerInfo> {
-  bool _isApproved = false;
+  int _isApproved =  0;
 
   @override
   Widget build(BuildContext context) {
@@ -104,29 +104,40 @@ class _VolunteerInfoState extends State<VolunteerInfo> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _isApproved = true;
-                          });
-                          // Handle Approve button press
-                        },
-                        child: Text('Approve'),
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size.fromHeight(50), // Adjust the button height
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _isApproved = false;
-                          });
-                          // Handle Reject button press
-                        },
-                        child: Text('Reject'),
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size.fromHeight(50), // Adjust the button height
-                        ),
-                      ),
+  onPressed: () {
+    FirebaseFirestore.instance.collection('users').where('name', isEqualTo: widget.name).get().then((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        doc.reference.update({'approved': 1}); // Update 'approved' field to 1 for approval
+      });
+    });
+    setState(() {
+      _isApproved = 1;
+    });
+    // Handle Approve button press
+  },
+  child: Text('Approve'),
+  style: ElevatedButton.styleFrom(
+    fixedSize: Size.fromHeight(50), // Adjust the button height
+  ),
+),
+ElevatedButton(
+  onPressed: () {
+    FirebaseFirestore.instance.collection('users').where('name', isEqualTo: widget.name).get().then((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        doc.reference.update({'approved': -1}); // Update 'approved' field to -1 for rejection
+      });
+    });
+    setState(() {
+      _isApproved = -1;
+    });
+    // Handle Reject button press
+  },
+  child: Text('Reject'),
+  style: ElevatedButton.styleFrom(
+    fixedSize: Size.fromHeight(50), // Adjust the button height
+  ),
+),
+
                     ],
                   ),
                 ],
