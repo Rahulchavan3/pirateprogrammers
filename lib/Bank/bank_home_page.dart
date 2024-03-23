@@ -6,6 +6,10 @@ import 'package:pirateprogrammers/login_page.dart';
 import 'volunteer_info.dart';
 
 class HomeBankScreen extends StatefulWidget {
+  final User user; // Define the user variable
+
+  const HomeBankScreen({Key? key, required this.user}) : super(key: key);
+
   @override
   _HomeBankScreenState createState() => _HomeBankScreenState();
 }
@@ -43,19 +47,20 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
             ),
             SizedBox(width: 8),
             StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance.collection('counters').doc('counter_doc').snapshots(),
+              stream: FirebaseFirestore.instance.collection('users').doc(widget.user.uid).snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
                 } else {
                   final counterValue = snapshot.data?['counter'] ?? 0;
                   return Text('$counterValue');
-                }
-              },
-            ),
-          ],
-        ),
+          }
+        },
       ),
+    ],
+  ),
+),
+
       body: Stack(
         children: [
           if (_selectedIndex == 0) // Render only if "Home" tab is selected
@@ -220,10 +225,14 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
             return Text('No profile data found');
           }
           final profileData = snapshot.data!.data() as Map<String, dynamic>;
-          final name = profileData['name']; // Fetch the 'name' field from Firestore
+          final name = 
+          profileData['name']; // Fetch the 'name' field from Firestore
           final email = profileData['email']; // Fetch the 'email' field from Firestore
           final profileImage = profileData['profileImage']; // Fetch the 'profileImage' field from Firestore
           final role = profileData['role']; // Fetch the 'role' field from Firestore
+          final address = profileData['address'];
+          final phone = profileData['phone'];
+          final pincode = profileData['pincode'];
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

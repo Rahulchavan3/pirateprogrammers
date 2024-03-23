@@ -29,10 +29,10 @@ import 'Bank/bank_profile.dart';
         initialRoute: '/',
         routes: {
           // '/': (context) => LandingPage(),
-          '/': (context) => HomeBankScreen(),
+          '/': (context) => HomeBankScreen(user: FirebaseAuth.instance.currentUser!),
           //'/': (context) => LoginPage(),
           //'/home': (context) => HomePage(),
-          '/homebank': (context) => HomeBankScreen(),
+          '/homebank': (context) => HomeBankScreen(user: FirebaseAuth.instance.currentUser!),
           '/home': (context) => HomePage(),
           '/login': (context) => LoginPage(),
           '/registration': (context) => RegistrationPage(),

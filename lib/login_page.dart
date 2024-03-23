@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                   } else if (role == 'Foodbank') {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => HomeBankScreen()),
+                      MaterialPageRoute(builder: (context) => HomeBankScreen(user: FirebaseAuth.instance.currentUser!)),
                     );
                   } else {
                     setState(() {
