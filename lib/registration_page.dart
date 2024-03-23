@@ -241,6 +241,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           'pincode': _pincodeController.text,
                           'role': _selectedRole,
                           'profileImage': imageURL,
+                          'score': 0,
                         });
 
                         // Navigate to home page on successful registration
