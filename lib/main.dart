@@ -48,7 +48,7 @@ import 'Bank/bank_profile.dart';
       final User? user = _auth.currentUser;
 
       if (user != null) {
-        return const HomePage(); // If user is logged in, show the home page
+        return  HomePage(); // If user is logged in, show the home page
       } else {
         return const LoginPage(); // If user is not logged in, show the login page
       }
