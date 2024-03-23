@@ -20,8 +20,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String? _selectedRole;
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _pincodeController = TextEditingController();
   File? _image;
+  String? _selectedRole;
 
   // Function to pick an image from gallery
   Future<void> _getImage() async {
@@ -90,22 +93,41 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   labelText: 'Name',
                 ),
               ),
-              const SizedBox(
-                  height: 10), // Reduced space between Name and Email
+              const SizedBox(height: 10),
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
                 ),
               ),
-              const SizedBox(
-                  height: 20), // Added space between Email and Password
+              const SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
                   labelText: 'Password',
                 ),
                 obscureText: true,
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _pincodeController,
+                decoration: const InputDecoration(
+                  labelText: 'Pincode',
+                ),
               ),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
@@ -114,10 +136,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 onChanged: (value) {
                   setState(() {
                     _selectedRole = value;
-                    // If the selected role is 'Foodbank', clear the image
-                    if (_selectedRole == 'Foodbank') {
-                      _image = null;
-                    }
                   });
                 },
                 items: ['Volunteer', 'Foodbank']
@@ -128,6 +146,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   );
                 }).toList(),
               ),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   try {
@@ -138,11 +157,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       password: _passwordController.text,
                     );
 
-                    // Upload image to Firebase Storage if not Foodbank role
-                    String imageURL = '';
-                    if (_image != null && _selectedRole != 'Foodbank') {
-                      imageURL = await _uploadImage(userCredential.user!.uid);
-                    }
+                    // Upload image to Firebase Storage
+                    String imageURL =
+                        await _uploadImage(userCredential.user!.uid);
 
                     // Add user details to Firestore collection
                     await _firestore
@@ -151,6 +168,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         .set({
                       'name': _nameController.text,
                       'email': _emailController.text,
+                      'phone': _phoneController.text,
+                      'address': _addressController.text,
+                      'pincode': _pincodeController.text,
                       'role': _selectedRole,
                       'profileImage': imageURL,
                     });
@@ -158,7 +178,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     // Navigate to home page on successful registration
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const HomePage()),
+                      MaterialPageRoute(
+                        builder: (context) => const HomePage(),
+                      ),
                     );
                   } catch (e) {
                     print('Error: $e');
