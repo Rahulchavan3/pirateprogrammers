@@ -34,6 +34,7 @@ class _VolunteerInfoState extends State<VolunteerInfo> {
         final volunteerData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
         final profileImageUrl = volunteerData['profileImage'] ?? '';
         final score = volunteerData['score']??'';
+        final demand = volunteerData['demand']??'';
         return Scaffold(
           appBar: AppBar(
             title: Text('Volunteer Info'),
@@ -93,7 +94,7 @@ class _VolunteerInfoState extends State<VolunteerInfo> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        widget.notificationCount.toString(),
+                        demand.toString(),
                         style: TextStyle(fontSize: 20),
                       ),
                     ],

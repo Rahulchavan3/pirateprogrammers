@@ -129,7 +129,7 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
               },
               child: NameItem(
                 name: name,
-                notificationCount: notificationCount, profileImageUrl: profileImageUrl,
+                demand: notificationCount, profileImageUrl: profileImageUrl,
               ),
             );
           },
@@ -310,12 +310,12 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
 
 class NameItem extends StatelessWidget {
   final String name;
-  final int notificationCount;
+  final int demand;
   final String profileImageUrl; // Add profile image URL
 
   const NameItem({
     required this.name,
-    required this.notificationCount,
+    required this.demand,
     required this.profileImageUrl, // Receive profile image URL
   });
 
@@ -342,7 +342,7 @@ class NameItem extends StatelessWidget {
                     style: TextStyle(fontSize: 18),
                   ),
                   Text(
-                    'Requirement ${notificationCount.toString()}',
+                    'Requirement ${demand.toString()}',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
