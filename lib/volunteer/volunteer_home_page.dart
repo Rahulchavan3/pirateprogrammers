@@ -5,8 +5,6 @@ import 'package:pirateprogrammers/Bank/volunteer_info.dart';
 import 'package:pirateprogrammers/login_page.dart';
 import 'package:pirateprogrammers/volunteer/bank_info.dart';
 
-
-
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -15,6 +13,31 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   int _demand = 0;
+  String pincode = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPincode();
+  }
+
+  void _fetchPincode() async {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+    try {
+      final userData =
+          await _firestore.collection('users').doc(user!.uid).get();
+      if (userData.exists) {
+        setState(() {
+          pincode = userData['pincode'].toString();
+        });
+      }
+    } catch (e) {
+      print('Error fetching pincode: $e');
+    }
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -37,13 +60,30 @@ class _HomePageState extends State<HomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            Icon(Icons.location_on), // Location icon
+            SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Available',
+                pincode.isNotEmpty
+                    ? pincode
+                    : pincode, // Display pincode dynamically
                 textAlign: TextAlign.left,
               ),
             ),
-            Text('15'),
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else {
+                  final score = snapshot.data?['score'] ?? 0;
+                  return Text('$score');
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -81,6 +121,8 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
 
   Widget _buildPageView() {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -298,7 +340,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-}
+
 
 class NameItem extends StatelessWidget {
   final String name;
