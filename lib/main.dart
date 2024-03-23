@@ -29,8 +29,8 @@ import 'Bank/bank_profile.dart';
         initialRoute: '/',
         routes: {
           // '/': (context) => LandingPage(),
-          //'/': (context) => HomeBankScreen(),
-          '/': (context) => LoginPage(),
+          '/': (context) => HomeBankScreen(),
+          //'/': (context) => LoginPage(),
           //'/home': (context) => HomePage(),
           '/homebank': (context) => HomeBankScreen(),
           '/home': (context) => HomePage(),

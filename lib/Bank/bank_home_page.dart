@@ -27,20 +27,31 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
                 'Available',
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.right,
               ),
             ),
-            Text('15'),
+            SizedBox(width: 8),
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance.collection('counters').doc('counter_doc').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else {
+                  final counterValue = snapshot.data?['counter'] ?? 0;
+                  return Text('$counterValue');
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -123,104 +134,98 @@ class _HomeBankScreenState extends State<HomeBankScreen> {
     );
   }
 
-  void _navigateToVolunteerInfo(
-      BuildContext context, String name, int notificationCount) {
+  void _navigateToVolunteerInfo(BuildContext context, String name, int notificationCount) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) =>
-              VolunteerInfo(name: name, notificationCount: notificationCount)),
+          builder: (context) => VolunteerInfo(name: name, notificationCount: notificationCount)),
     );
   }
 
   Widget _buildSearchOverlay() {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final User? user = _auth.currentUser;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  return Container(
-    color: Colors.white,
-    padding: EdgeInsets.all(20),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Data Update',
-          style: TextStyle(fontSize: 24),
-        ),
-        SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            
-            FloatingActionButton(
-              onPressed: _decrementCounter,
-              tooltip: 'Decrement',
-              child: Icon(Icons.remove),
-            ),
-            SizedBox(width: 20),
-            Text(
-              '$_counter',
-              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(width: 20),
-            FloatingActionButton(
-              onPressed: _incrementCounter,
-              tooltip: 'Increment',
-              child: Icon(Icons.add),
-            ),
-          ],
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            // Save counter value to Firestore
-            _saveCounterToFirestore(user!.uid, _counter);
-          },
-          child: Text('Save'),
-        ),
-      ],
-    ),
-  );
-}
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.all(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Data Update',
+            style: TextStyle(fontSize: 24),
+          ),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FloatingActionButton(
+                onPressed: _decrementCounter,
+                tooltip: 'Decrement',
+                child: Icon(Icons.remove),
+              ),
+              SizedBox(width: 20),
+              Text(
+                '$_counter',
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(width: 20),
+              FloatingActionButton(
+                onPressed: _incrementCounter,
+                tooltip: 'Increment',
+                child: Icon(Icons.add),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              // Save counter value to Firestore
+              _saveCounterToFirestore(_counter);
+            },
+            child: Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 
+  void _saveCounterToFirestore(int counterValue) {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-void _saveCounterToFirestore(String userId, int counterValue) {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  _firestore.collection('users').doc(userId).update({
-    'counter': counterValue,
-  }).then((value) {
-    // Successfully saved to Firestore
-    print('Counter value saved to Firestore: $counterValue');
-  }).catchError((error) {
-    // Failed to save to Firestore
-    print('Failed to save counter value: $error');
-  });
-}
-
-
+    _firestore.collection('counters').doc('counter_doc').set({
+      'counter': counterValue,
+    }).then((value) {
+      // Successfully saved to Firestore
+      print('Counter value saved to Firestore: $counterValue');
+    }).catchError((error) {
+      // Failed to save to Firestore
+      print('Failed to save counter value: $error');
+    });
+  }
 
   Widget _buildProfileOverlay() {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final User? user = _auth.currentUser;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  return StreamBuilder<DocumentSnapshot>(
-    stream: _firestore.collection('users').doc(user!.uid).snapshots(),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
-      } else {
-        if (!snapshot.hasData || snapshot.data!.data() == null) {
-          // If no data or no user found, display an appropriate message
-          return Text('No profile data found');
-        }
-        final profileData = snapshot.data!.data() as Map<String, dynamic>;
-        final name = profileData['name']; // Fetch the 'name' field from Firestore
-        final email = profileData['email']; // Fetch the 'email' field from Firestore
-        final profileImage = profileData['profileImage']; // Fetch the 'profileImage' field from Firestore
-        final role = profileData['role']; // Fetch the 'role' field from Firestore
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestore.collection('users').doc(user!.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          if (!snapshot.hasData || snapshot.data!.data() == null) {
+            // If no data or no user found, display an appropriate message
+            return Text('No profile data found');
+          }
+          final profileData = snapshot.data!.data() as Map<String, dynamic>;
+          final name = profileData['name']; // Fetch the 'name' field from Firestore
+          final email = profileData['email']; // Fetch the 'email' field from Firestore
+          final profileImage = profileData['profileImage']; // Fetch the 'profileImage' field from Firestore
+          final role = profileData['role']; // Fetch the 'role' field from Firestore
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
